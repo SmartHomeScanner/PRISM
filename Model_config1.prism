@@ -18,7 +18,7 @@ module feature_motion = feature_smoke [smoke=motion, feature_flag1=feature_flag2
 
 
 
-module sensor_smoke_1
+module sensor_smoke_S1
 // This is a generic sensor module to model boolean sensors, such as observing smoke. 
 // If the feature is absent (0), the sensed value is (0).
 // If the feature is detected, the sensed value is changed to 1.
@@ -118,7 +118,7 @@ link_L3_jam : [0..1] init 0;
 link_L4_jam : [0..1] init 0;
 link_L5_jam : [0..1] init 0;
 counter : [0..7] init 0;
-// Subce both S1 and A2 operate on Zigbee, their data can be modified in transit, only if it reaches the gateway G1
+// Since both S1 and A2 operate on Zigbee, their data can be modified in transit, only if it reaches the gateway G1
 sensor_S1_tailor : [0..1] init 0;  // Decision variable, whether or not the attacker attempt to change the S1 observation (received at G1) was successful.
 actuator_A2_tailor : [0..1] init 0; // Decision variable, whether or not the attacker attempt to change the A2 command (received at G1) was successful. 
 api_S1_tailor : [0..1] init 0;  // // Decision variable, whether or not the attacker attempt to change the S1 value (received at API-S1) was successful.

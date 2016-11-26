@@ -54,14 +54,14 @@ module link_L3
 // The module models the link status of L3 link.
 // S1RecG1 models the value received at gateway G1 from S1. 
 // If the link L3 is down the received value =2 which is used to code that the value is not received
-// In our scenario L3 is physically secure and cannot be jammed. Therefore, link_L3_Jamm variable will always be zero
+// In our scenario L3 is physically secure and cannot be jammed. Therefore, link_L3_Jam variable will always be zero
 // counter variable is used to sequence attacker actions.
 
 link_flagL3 : [0..1] init 0;
 S1RecG1 : [0..2] init 2;
 	
-	[l37] link_L3_Jamm=1 & counter=1 & link_flagL3=0-> (S1RecG1'=2) & (link_flagL3'=1);
-	[l37] link_L3_Jamm=0 & counter=1 & link_flagL3=0-> (S1RecG1'=smoke_sensor_S1) &  (link_flagL3'=1);
+	[l37] link_L3_Jam=1 & counter=1 & link_flagL3=0-> (S1RecG1'=2) & (link_flagL3'=1);
+	[l37] link_L3_Jam=0 & counter=1 & link_flagL3=0-> (S1RecG1'=smoke_sensor_S1) &  (link_flagL3'=1);
 	
   	    
 endmodule
@@ -70,7 +70,7 @@ endmodule
  // S1RecG1 has been made equal to S3RecC1 since S3 cannot be modified or blocked at G1 and will direclt reach C1 as transmitted
  // This abstraction helps reduce the number of variables.
  
- module link_L7 = link_L3 [link_L3_Jamm=link_L7_Jamm, link_flagL3=link_flagL7,S1RecG1=S3RecC1,smoke_sensor_S1=smoke_sensor_S3] endmodule 
+ module link_L7 = link_L3 [link_L3_Jam=link_L7_Jam, link_flagL3=link_flagL7,S1RecG1=S3RecC1,smoke_sensor_S1=smoke_sensor_S3] endmodule 
 
 
 module gateway_G1
@@ -103,14 +103,14 @@ module link_L4
  link_flagL4 : [0..1] init 0;
  A1 : [0..2] init 2;
 	
-	[l45] link_L4_Jamm=1 & counter=5 & G1_A1A2_Tx_flag=1 & link_flagL4=0-> (A1'=2) & (link_flagL4'=1);
-	[l45] link_L4_Jamm=0 & counter=5 & G1_A1A2_Tx_flag=1 & link_flagL4=0-> (A1'=A1TxG1) & (link_flagL4'=1);
+	[l45] link_L4_Jam=1 & counter=5 & G1_A1A2_Tx_flag=1 & link_flagL4=0-> (A1'=2) & (link_flagL4'=1);
+	[l45] link_L4_Jam=0 & counter=5 & G1_A1A2_Tx_flag=1 & link_flagL4=0-> (A1'=A1TxG1) & (link_flagL4'=1);
 	
   	    
 endmodule
 
 
-module link_L5 = link_L4 [link_L4_Jamm=link_L5_Jamm, link_flagL4=link_flagL5,A1=A2,A1TxG1=A2TxA2] endmodule
+module link_L5 = link_L4 [link_L4_Jam=link_L5_Jam, link_flagL4=link_flagL5,A1=A2,A1TxG1=A2TxA2] endmodule
 
 
 
@@ -119,10 +119,10 @@ module attacker
 
 
 cost : [0..10] init 0;
-link_L3_Jamm : [0..1] init 0;
-link_L4_Jamm : [0..1] init 0;
-link_L5_Jamm : [0..1] init 0;
-link_L7_Jamm : [0..1] init 0;
+link_L3_Jam : [0..1] init 0;
+link_L4_Jam : [0..1] init 0;
+link_L5_Jam : [0..1] init 0;
+link_L7_Jam : [0..1] init 0;
 counter : [0..7] init 0;
 // Subce both S1 and A2 operate on Zigbee, their data can be modified in transit, only if it reaches the gateway G1
 sensor_S1_tailor : [0..1] init 0;  // Decision variable, whether or not the attacker attempt to change the S1 observation (received at G1) was successful.
@@ -131,8 +131,8 @@ api_S1_tailor : [0..1] init 0;  // // Decision variable, whether or not the atta
 
 
 // Link L3 cannot be jammed in our scenario. So this variable will remain as zero (you may even like to remove this variable, if you want to reduce the numbe of variables)
-	[] link_L3_Jamm=0 & sensor_flag1=1 &  counter=0 -> (link_L3_Jamm'=0) & (counter'=7);
-	[] link_L7_Jamm=0 & sensor_flag1=1 &  counter=7 -> (link_L7_Jamm'=0) & (counter'=1);
+	[] link_L3_Jam=0 & sensor_flag1=1 &  counter=0 -> (link_L3_Jam'=0) & (counter'=7);
+	[] link_L7_Jam=0 & sensor_flag1=1 &  counter=7 -> (link_L7_Jam'=0) & (counter'=1);
 
 // link_flagL3 tells that the S1 data has been transferred to G1 by L3
 	[] sensor_S1_tailor=0 & link_flagL3=1 & cost<att_cap & counter=1 -> 0.45:(sensor_S1_tailor'=1) & (cost'=cost+1) & (counter'=2) + 0.55:(sensor_S1_tailor'=0)& (cost'=cost+1) & (counter'=2);
@@ -144,11 +144,11 @@ api_S1_tailor : [0..1] init 0;  // // Decision variable, whether or not the atta
 
 // G1_A1A2_Tx_flag tells us that the commands of A1 and A2 have been transferred by the G1 to respective actuators
 
-	[] link_L4_Jamm=0 &  cost<att_cap  & counter=3 & G1_A1A2_Tx_flag=1 -> 0.4:(link_L4_Jamm'=1) & (cost'=cost+1) & (counter'=4) + 0.6:(link_L4_Jamm'=0)& (cost'=cost+1)& (counter'=4);
-	[] link_L4_Jamm=0 &  counter=3 & G1_A1A2_Tx_flag=1 -> (link_L4_Jamm'=0) & (counter'=4);
+	[] link_L4_Jam=0 &  cost<att_cap  & counter=3 & G1_A1A2_Tx_flag=1 -> 0.4:(link_L4_Jam'=1) & (cost'=cost+1) & (counter'=4) + 0.6:(link_L4_Jam'=0)& (cost'=cost+1)& (counter'=4);
+	[] link_L4_Jam=0 &  counter=3 & G1_A1A2_Tx_flag=1 -> (link_L4_Jam'=0) & (counter'=4);
 
-	[] link_L5_Jamm=0 & cost<att_cap & counter=4 & G1_A1A2_Tx_flag=1-> 0.4:(link_L5_Jamm'=1) & (cost'=cost+1) & (counter'=5) + 0.6:(link_L5_Jamm'=0)& (cost'=cost+1) & (counter'=5);
-	[] link_L5_Jamm=0 & counter=4 & G1_A1A2_Tx_flag=1-> (link_L5_Jamm'=0) & (counter'=5) ;
+	[] link_L5_Jam=0 & cost<att_cap & counter=4 & G1_A1A2_Tx_flag=1-> 0.4:(link_L5_Jam'=1) & (cost'=cost+1) & (counter'=5) + 0.6:(link_L5_Jam'=0)& (cost'=cost+1) & (counter'=5);
+	[] link_L5_Jam=0 & counter=4 & G1_A1A2_Tx_flag=1-> (link_L5_Jam'=0) & (counter'=5) ;
 
 
 	[] api_S1_tailor=0 & sensor_flag_S2=1 & cost<att_cap & counter=5 -> 0.2:( api_S1_tailor'=1) & (cost'=cost+1) & (counter'=6) + 0.8:( api_S1_tailor'=0)& (cost'=cost+1) & (counter'=6);
